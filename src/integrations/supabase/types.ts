@@ -14,7 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      games: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          participation_fee: number
+          pot_total: number
+          user_id: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          participation_fee?: number
+          pot_total: number
+          user_id: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          participation_fee?: number
+          pot_total?: number
+          user_id?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_bets: {
+        Row: {
+          bets: number[]
+          game_id: string
+          id: string
+          player_id: string
+          total_bet: number
+        }
+        Insert: {
+          bets?: number[]
+          game_id: string
+          id?: string
+          player_id: string
+          total_bet?: number
+        }
+        Update: {
+          bets?: number[]
+          game_id?: string
+          id?: string
+          player_id?: string
+          total_bet?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_bets_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_bets_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

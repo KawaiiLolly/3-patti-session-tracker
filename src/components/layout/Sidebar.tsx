@@ -8,10 +8,13 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Spade
+  Spade,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const navItems = [
   { title: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -24,6 +27,12 @@ const navItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Signed out successfully');
+  };
 
   return (
     <aside
@@ -75,8 +84,25 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Collapse Button */}
-        <div className="border-t border-sidebar-border p-3">
+        {/* User & Sign Out */}
+        <div className="border-t border-sidebar-border p-3 space-y-2">
+          {!collapsed && user && (
+            <div className="px-3 py-2 text-xs text-muted-foreground truncate">
+              {user.email}
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className={cn(
+              "w-full justify-center text-muted-foreground hover:text-destructive",
+              !collapsed && "justify-start"
+            )}
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed && <span>Sign Out</span>}
+          </Button>
           <Button
             variant="ghost"
             size="sm"

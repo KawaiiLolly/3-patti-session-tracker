@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Trophy, Plus, X, Coins } from 'lucide-react';
+import { Trophy, Plus, Coins, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NewGameFormProps {
   players: Player[];
   participationFee: number;
-  onSubmit: (playerBets: PlayerBet[], winnerId: string) => void;
+  onSubmit: (playerBets: PlayerBet[], winnerId: string) => Promise<unknown>;
 }
 
 interface PlayerInput {
@@ -21,6 +21,7 @@ interface PlayerInput {
 }
 
 export function NewGameForm({ players, participationFee, onSubmit }: NewGameFormProps) {
+  const [submitting, setSubmitting] = useState(false);
   const [playerInputs, setPlayerInputs] = useState<PlayerInput[]>(
     players.map(p => ({ playerId: p.id, selected: false, betsInput: '' }))
   );
@@ -58,7 +59,7 @@ export function NewGameForm({ players, participationFee, onSubmit }: NewGameForm
     ));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedPlayers.length < 2) {
       toast.error('Select at least 2 players');
       return;
@@ -68,18 +69,25 @@ export function NewGameForm({ players, participationFee, onSubmit }: NewGameForm
       return;
     }
 
-    const playerBets: PlayerBet[] = selectedPlayers.map(pi => ({
-      playerId: pi.playerId,
-      bets: parseBets(pi.betsInput),
-      totalBet: parseBets(pi.betsInput).reduce((sum, b) => sum + b, 0),
-    }));
+    setSubmitting(true);
+    try {
+      const playerBets: PlayerBet[] = selectedPlayers.map(pi => ({
+        playerId: pi.playerId,
+        bets: parseBets(pi.betsInput),
+        totalBet: parseBets(pi.betsInput).reduce((sum, b) => sum + b, 0),
+      }));
 
-    onSubmit(playerBets, winnerId);
-    
-    // Reset form
-    setPlayerInputs(prev => prev.map(pi => ({ ...pi, selected: false, betsInput: '' })));
-    setWinnerId('');
-    toast.success('Game recorded successfully!');
+      const result = await onSubmit(playerBets, winnerId);
+      
+      if (result) {
+        // Reset form
+        setPlayerInputs(prev => prev.map(pi => ({ ...pi, selected: false, betsInput: '' })));
+        setWinnerId('');
+        toast.success('Game recorded successfully!');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -186,10 +194,10 @@ export function NewGameForm({ players, participationFee, onSubmit }: NewGameForm
         size="lg" 
         className="w-full"
         onClick={handleSubmit}
-        disabled={selectedPlayers.length < 2 || !winnerId}
+        disabled={selectedPlayers.length < 2 || !winnerId || submitting}
       >
-        <Plus className="h-4 w-4" />
-        Record Game
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+        {submitting ? 'Recording...' : 'Record Game'}
       </Button>
     </div>
   );

@@ -9,15 +9,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import { Plus, Pencil, Trash2, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PlayerManagerProps {
   players: Player[];
-  onAdd: (name: string) => void;
-  onUpdate: (id: string, name: string) => void;
-  onDelete: (id: string) => void;
+  onAdd: (name: string) => Promise<unknown>;
+  onUpdate: (id: string, name: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
 export function PlayerManager({ players, onAdd, onUpdate, onDelete }: PlayerManagerProps) {
@@ -25,32 +24,48 @@ export function PlayerManager({ players, onAdd, onUpdate, onDelete }: PlayerMana
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newName.trim()) {
       toast.error('Enter a player name');
       return;
     }
-    onAdd(newName);
-    setNewName('');
-    setDialogOpen(false);
-    toast.success('Player added!');
+    setLoading(true);
+    try {
+      await onAdd(newName);
+      setNewName('');
+      setDialogOpen(false);
+      toast.success('Player added!');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdate = (id: string) => {
+  const handleUpdate = async (id: string) => {
     if (!editName.trim()) {
       toast.error('Enter a player name');
       return;
     }
-    onUpdate(id, editName);
-    setEditingId(null);
-    toast.success('Player updated!');
+    setLoading(true);
+    try {
+      await onUpdate(id, editName);
+      setEditingId(null);
+      toast.success('Player updated!');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (confirm(`Delete player "${name}"?`)) {
-      onDelete(id);
-      toast.success('Player deleted!');
+      setLoading(true);
+      try {
+        await onDelete(id);
+        toast.success('Player deleted!');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -76,7 +91,8 @@ export function PlayerManager({ players, onAdd, onUpdate, onDelete }: PlayerMana
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               className="bg-background border-border"
             />
-            <Button variant="gold" className="w-full" onClick={handleAdd}>
+            <Button variant="gold" className="w-full" onClick={handleAdd} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Add Player
             </Button>
           </div>
