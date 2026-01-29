@@ -5,7 +5,7 @@ import { RecentGames } from '@/components/dashboard/RecentGames';
 import { Gamepad2, Trophy, Coins, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
-  const { players, games, playerStats } = useGameStore();
+  const { players, games, playerStats, deleteGame } = useGameStore();
 
   const totalGames = games.length;
   const totalPot = games.reduce((sum, g) => sum + g.potTotal, 0);
@@ -54,7 +54,7 @@ export default function Dashboard() {
           <Leaderboard stats={playerStats} />
         </div>
         <div>
-          <RecentGames games={games} players={players} />
+          <RecentGames games={games} players={players} onDeleteGame={deleteGame} />
         </div>
       </div>
     </div>

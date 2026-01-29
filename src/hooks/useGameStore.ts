@@ -210,6 +210,19 @@ export function useGameStore() {
     return newGame;
   }, [user, participationFee]);
 
+  const deleteGame = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from('games')
+      .delete()
+      .eq('id', id);
+    
+    if (!error) {
+      setGames(prev => prev.filter(g => g.id !== id));
+      return true;
+    }
+    return false;
+  }, []);
+
   // Calculate game results
   const getGameResults = useCallback((game: Game): GameResult[] => {
     return game.players.map(pb => {
@@ -318,6 +331,7 @@ export function useGameStore() {
     updatePlayer,
     deletePlayer,
     addGame,
+    deleteGame,
     getGameResults,
     refreshData: () => Promise.all([fetchPlayers(), fetchGames()]),
   };
