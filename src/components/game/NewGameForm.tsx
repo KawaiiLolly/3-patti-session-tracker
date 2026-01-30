@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Player, PlayerBet } from '@/types/game';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,10 +22,22 @@ interface PlayerInput {
 
 export function NewGameForm({ players, participationFee, onSubmit }: NewGameFormProps) {
   const [submitting, setSubmitting] = useState(false);
-  const [playerInputs, setPlayerInputs] = useState<PlayerInput[]>(
-    players.map(p => ({ playerId: p.id, selected: false, betsInput: '' }))
-  );
+  const [playerInputs, setPlayerInputs] = useState<PlayerInput[]>([]);
   const [winnerId, setWinnerId] = useState<string>('');
+
+  // Sync playerInputs when players change (e.g., new player added)
+  useEffect(() => {
+    setPlayerInputs(prev => {
+      const existingIds = new Set(prev.map(pi => pi.playerId));
+      const newInputs = players
+        .filter(p => !existingIds.has(p.id))
+        .map(p => ({ playerId: p.id, selected: false, betsInput: '' }));
+      
+      // Keep existing inputs for players that still exist, add new ones
+      const validPrev = prev.filter(pi => players.some(p => p.id === pi.playerId));
+      return [...validPrev, ...newInputs];
+    });
+  }, [players]);
 
   const selectedPlayers = playerInputs.filter(pi => pi.selected);
 
